@@ -1,0 +1,171 @@
+<!Doctype html>
+<html lang="ko">
+
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+              integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+              crossorigin="anonymous">
+
+        <!-- JS -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+                integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+                crossorigin="anonymous"></script>
+
+        <!-- 구글폰트 -->
+        <link href="https://fonts.googleapis.com/css?family=Stylish&display=swap" rel="stylesheet">
+
+
+        <title>타임어택 1주차</title>
+
+        <!-- style -->
+        <style type="text/css">
+            * {
+                font-family: "Stylish", sans-serif;
+            }
+
+            .wrap {
+                width: 900px;
+                margin: auto;
+            }
+
+            .comment {
+                color: blue;
+                font-weight: bold;
+            }
+
+            #post-box {
+                width: 500px;
+                margin: 20px auto;
+                padding: 50px;
+                border: black solid;
+                border-radius: 5px;
+            }
+
+            /*.select-sector{*/
+            /*    visibility:hidden;*/
+            /*    display: none;*/
+            /*}*/
+        </style>
+        <script>
+            $(document).ready(function () {
+                $(".select-market").hide();
+                $(".select-sector").hide();
+                $(".select-tag").hide();
+
+            });
+
+            function startclick() {
+                // $("#btn-post-box").css("display","none")
+                $("#btn-post-box").hide();
+                $(".select-market").show();
+
+            }
+            function checkmarket(){
+                $(".select-market").hide();
+                $(".select-sector").show();
+            }
+
+            function checkSector(){
+                $(".select-sector").hide();
+                $(".select-tag").show();
+            }
+
+            function checktag() {
+                let market_give = $("input[name='market']:checked").val();
+                let sector_give = $("input[name='sector']:checked").val();
+                let tag_give = $("input[name='tag']:checked").val();
+
+                $.ajax({
+                    type: "GET",
+                    url: "/show",
+                    data: {"market_give": market_give,"sector_give": sector_give, "tag_give": tag_give},
+                    success: function (response) { // 성공하면
+
+                        // alert(response["msg"]);
+                        console.log(response['done'])
+
+                    }
+                })
+
+            }
+
+            function showArticles() {
+                $.ajax({
+                    type: "GET",
+                    url: "/memo?sample_give=샘플데이터",
+                    data: {},
+                    success: function (response) {
+                        let articles = response['all_articles']
+
+                        for(let i=0;i<articles.length;i++){
+                            let title = articles[i]['title']
+                            let image = articles[i]['image']
+                            let url = articles[i]['url']
+                            let desc = articles[i]['desc']
+                            let comment = articles[i]['comment']
+
+                            let temp_html = `<div class="card">
+                                                <img class="card-img-top"
+                                                     src="${image}"
+                                                     alt="Card image cap">
+                                                <div class="card-body">
+                                                    <a target="_blank" href="${url}" class="card-title">${title}</a>
+                                                    <p class="card-text">${desc}</p>
+                                                    <p class="card-text comment">${comment}</p>
+                                                </div>
+                                            </div>`
+
+                            $('#cards-box').append(temp_html)
+                        }
+                    }
+                })
+            }
+        </script>
+
+    </head>
+
+    <body>
+        <div class="wrap">
+            <div class="jumbotron">
+                <h1 class="display-4">주식 종목 추천!!</h1>
+                <p class="lead">원하시는 종목을 추천합니다.</p>
+                <hr class="my-4">
+                <p class="lead">
+                    <button onclick="startclick()" id="btn-post-box" type="button" class="btn btn-primary">추천시작
+                    </button>
+                </p>
+
+                <div class="select-market">
+                    <input type="radio" name="market" value="market-1"> 코스피 <br>
+                    <input type="radio" name="market" value="market-2"> 코스닥 <br>
+                    <button onclick="checkmarket()" type="button" class="btn btn-success">다음</button>
+                </div>
+
+                <div class="select-sector">
+                    <input type="radio" name="sector" value="sector-1"> 반도체와반도체장비 <br>
+                    <input type="radio" name="sector" value="sector-2"> 양방향미디어와서비스 <br>
+                    <input type="radio" name="sector" value="sector-3"> 자동차 <br>
+                    <button onclick="checkSector()" type="button" class="btn btn-success">다음</button>
+                </div>
+
+                <div class="select-tag">
+                    <input type="radio" name="tag" value="tag-1"> 메모리 <br>
+                    <input type="radio" name="tag" value="tag-2"> 플랫폼 <br>
+                    <input type="radio" name="tag" value="tag-4"> 전기차 <br>
+                    <button onclick="checktag()" type="button" class="btn btn-success">다음</button>
+                </div>
+
+            </div>
+
+
+            </div>
+        </div>
+    </body>
+
+</html>
