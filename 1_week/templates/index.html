@@ -137,8 +137,11 @@
                 success: function (response) { // 성공하면
                     console.log(response['result_lists'])
                     for (let i = 0; i < response['result_lists'].length; i++) {
+                        // console.log(response['result_lists'][i]['code'])
+                        let code = String(response['result_lists'][i]['code'])
+                        console.log(typeof(code))
                         let temp_html = `
-                                            <span id="${i}"> ${response['result_lists'][i]['name']}</span> <button onclick="click_stock(${i})" type="button" class="btn btn-info">정보</button>
+                                            <span id="${i}"> ${response['result_lists'][i]['name']}</span> <button onclick="click_stock('${code}')" type="button" class="btn btn-info">정보</button>
                                             <br>`
                         $(".stock-input").append(temp_html)
                     }
@@ -148,27 +151,26 @@
 
         }
 
-        function click_stock(i) {
-            console.log(i)
-
-            let name =$('#'+i).text()
-            console.log(name)
+        //주식 정보
+        function click_stock(code) {
+            console.log(code)
 
             $.ajax({
                 type: "POST",
                 url: '/stock',
                 data: {
-                    name : name
+                    code: code
                 },
                 success: function (response) {
-                    alert(response)
+
+                    alert("주가 : "+response['price']+"\n"+"per : "+response['per'] +"\n" +"시가 총액 : "+response['amount'])
 
                 }
             })
         }
 
         function restart() {
-            result=[]
+            result = []
             $("#btn-post-box").show();
             $(".select-market").hide();
             $(".select-sector").hide();
