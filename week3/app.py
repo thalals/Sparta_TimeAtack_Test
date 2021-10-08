@@ -23,14 +23,14 @@ def save_post():
     idx = 1
     for number in db_list:
         if idx <= number['idx']:
-            idx = number['idx']+1
+            idx = number['idx'] + 1
 
     doc = {
         'idx': idx,
         'title': title,
         'contents': contents,
         'reg_date': time,
-        'view' : 0
+        'view': 0
     }
     db.articles.insert_one(doc)
 
@@ -48,7 +48,7 @@ def delete_post():
     id = request.form['idx']
     db.articles.delete_one({'idx': int(id)})
 
-    return jsonify({'result': 'success','msg': '삭제 성공'})
+    return jsonify({'result': 'success', 'msg': '삭제 성공'})
 
 
 @app.route('/articles', methods=['GET'])
@@ -57,22 +57,42 @@ def articles():
     article = db.articles.find_one({'idx': int(id)}, {'_id': False})
     return jsonify({'articles': article})
 
-@app.route('/articles', methods=['UPDATE'])
-def articlesUpdate():
-    id = request.args.get('idx')
-    title = request.args.get('title')
-    contents = request.args.get('contents')
 
-    article = db.articles.update({'idx': int(id)}, {'title' :title, 'contents' : contents} )
+@app.route('/articles', methods=['PUT'])
+def update():
+    id = request.form.get('idx')
+    title = request.form.get('title')
+    contents = request.form.get('contents')
+    article = db.articles.update_one({'idx': int(id)}, {"$set": {'title': title, 'contents': contents}})
     return jsonify({'articles': article})
+
 
 @app.route('/view', methods=['GET'])
 def viewUp():
     id = request.args.get('idx')
-    view = db.articles.find_one({'idx': int(id)}, {'_id': False})['view']+1
+    view = db.articles.find_one({'idx': int(id)}, {'_id': False})['view'] + 1
 
-    article = db.articles.update({'idx': int(id)}, {'view' :view} )
-    return jsonify({'articles': article})
+    db.articles.update_one({'idx': int(id)}, {"$set": {'view': view}})
+
+    all_articles = db.articles.find_one({'idx': int(id)}, {'_id': False})
+
+    print(all_articles)
+    return jsonify({'articles': all_articles})
+
+
+@app.route('/sort', methods=['GET'])
+def sort():
+    type = request.args.get("type")
+
+    a = 0
+    if type=="up" :
+        a=-1
+    else:
+        a=1
+
+    all_articles = list(db.articles.find({}, {'_id': False}).sort([("view",a)]))
+
+    return jsonify({'articles': all_articles})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

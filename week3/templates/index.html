@@ -24,7 +24,8 @@
     <!-- 구글폰트 -->
     <link href="https://fonts.googleapis.com/css?family=Stylish&display=swap" rel="stylesheet">
 
-
+    <!--fontawesome -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.14.0/css/all.css" integrity="sha384-HzLeBuhoNPvSl5KYnjx0BT+WB0QEEqLprO+NBkkk5gbc67FTaL7XIGa2w1L0Xbgc" crossorigin="anonymous">
     <title>스파르타코딩클럽 | 나홀로 메모장</title>
 
     <!-- style -->
@@ -109,12 +110,13 @@
                         let title = articles[i]['title']
                         let idx = articles[i]['idx']
                         let time = articles[i]['reg_date']
+                        let view = articles[i]['view']
 
                         let temp_html = `<tr >
                                            <th scope="col" >${number}</th>
                                            <th scope="col" ><a href="javascript:void(0);" onclick="show(${idx});"> ${title}</a></div>
                                            <th scope="col" >${time}</div>
-                                           <th scope="col" >0</div>
+                                           <th scope="col" >${view}</div>
                                            <th scope="col"><button onclick="deleteArticle(${idx})" type="button" class="btn btn-danger" >삭제</button></th>
                                            <th scope="col"><button onclick="updateArticle(${idx})" type="button" class="btn btn-primary" >수정</button></th>
                                          </tr>`
@@ -140,8 +142,8 @@
                     let title = response['articles']['title'];
                     let contents = response['articles']['contents'];
                     let idx = response['articles']['idx'];
-                    $('#post-url').text(title)
-                    $('#post-comment').text(contents)
+                    $('#post-url').val(title)
+                    $('#post-comment').val(contents)
                     $('#update-id').val(idx)
                 }
             });
@@ -150,12 +152,12 @@
         }
 
         function updatepost() {
-            let title = $('#post-url').text()
-            let contents = $('#post-comment').text()
+            let title = $('#post-url').val()
+            let contents = $('#post-comment').val()
             let idx = $('#update-id').val()
 
-            ajax({
-                type: "UPDATE",
+            $.ajax({
+                type: "PUT",
                 url: `/articles`,
                 data: {
                     title: title,
@@ -189,19 +191,15 @@
         }
 
         function show(idx) {
-            $("#modal-title").html("ajax를 통해 얻어온 id에 해당하는 값");
-            $("#modal-contents").html("ajax를 통해 얻어온 id에 해당하는 값");
-
             $.ajax({
                 type: "GET",
-                url: `/articles`,
+                url: `/view`,
                 data: {
                     idx: idx
                 },
                 success: function (response) {
                     let title = response['articles']['title'];
                     let contents = response['articles']['contents'];
-
 
                     $("#modal-title").html(title);
                     $("#modal-contents").html(contents);
@@ -210,8 +208,42 @@
 
             //modal을 띄워준다.
             $("#myModal").modal('show');
-            window.location.reload()
+        }
 
+        function sort(str){
+            $('#sort-up').toggleClass("is-hidden");
+            $('#sort-down').toggleClass("is-hidden");
+
+            $.ajax({
+                type: "GET",
+                url: `/sort`,
+                data: {
+                    type: str
+                },
+                success: function (response) {
+                     $('#list-post').empty()
+                    let articles = response['articles']
+                    let number = 1;
+
+                    for (let i = 0; i < articles.length; i++) {
+                        let title = articles[i]['title']
+                        let idx = articles[i]['idx']
+                        let time = articles[i]['reg_date']
+                        let view = articles[i]['view']
+
+                        let temp_html = `<tr >
+                                           <th scope="col" >${number}</th>
+                                           <th scope="col" ><a href="javascript:void(0);" onclick="show(${idx});"> ${title}</a></div>
+                                           <th scope="col" >${time}</div>
+                                           <th scope="col" >${view}</div>
+                                           <th scope="col"><button onclick="deleteArticle(${idx})" type="button" class="btn btn-danger" >삭제</button></th>
+                                           <th scope="col"><button onclick="updateArticle(${idx})" type="button" class="btn btn-primary" >수정</button></th>
+                                         </tr>`
+                        $('#list-post').append(temp_html)
+                        number += 1
+                    }
+                }
+            });
         }
     </script>
 
@@ -249,7 +281,8 @@
             <th scope="col">#</th>
             <th scope="col">제목</th>
             <th scope="col">날짜</th>
-            <th scope="col">조회⬆</th>
+            <th id="sort-up" scope="col">조회 <i onclick="sort('up')" class="fas fa-arrow-circle-up"></i></th>
+            <th id="sort-down" class="is-hidden" scope="col">조회 <i onclick="sort('down')" class="fas fa-arrow-circle-down"></i></th>
             <th scope="col">삭제</th>
             <th scope="col">수정</th>
         </tr>
