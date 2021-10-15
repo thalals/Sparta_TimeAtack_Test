@@ -1,0 +1,364 @@
+<!Doctype html>
+<html lang="ko">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="shortcut icon" href="/static/images/favicon.png">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+          crossorigin="anonymous">
+
+    <!-- JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            crossorigin="anonymous"></script>
+
+    <!-- 구글폰트 -->
+    <link href="https://fonts.googleapis.com/css?family=Stylish&display=swap" rel="stylesheet">
+
+    <!--fontawesome -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.14.0/css/all.css"
+          integrity="sha384-HzLeBuhoNPvSl5KYnjx0BT+WB0QEEqLprO+NBkkk5gbc67FTaL7XIGa2w1L0Xbgc" crossorigin="anonymous">
+    <title>스파르타코딩클럽 | 나홀로 메모장</title>
+
+    <!-- style -->
+    <style type="text/css">
+        * {
+            font-family: "Stylish", sans-serif;
+        }
+
+        .comment {
+            color: blue;
+            font-weight: bold;
+        }
+
+        .wrap {
+            width: 900px;
+            margin: auto;
+        }
+
+        #post-box {
+            width: 500px;
+            margin: 20px auto;
+            padding: 50px;
+            border: black solid;
+            border-radius: 5px;
+        }
+
+        .is-hidden {
+            display: none;
+        }
+
+        .input-group{
+            width: 200px;
+            margin: auto;
+        }
+
+    </style>
+    <script>
+        $(document).ready(function () {
+            $("#list-post").html("");
+            showArticles();
+        });
+
+        function openClose() {
+            // id 값 post-box의 display 값이 block 이면(= 눈에 보이면)
+            if ($("#post-box").css("display") == "block") {
+                // post-box를 가리고
+                $("#post-box").hide();
+                // 다시 버튼을 클릭하면, 박스 열기를 할 수 있게 텍스트 바꿔두기
+                $("#btn-post-box").text("포스팅 박스 열기");
+            } else {
+                // 아니면(눈에 보이지 않으면) post-box를 펴라
+                $("#post-box").show();
+                // 다시 버튼을 클릭하면, 박스 닫기를 할 수 있게 텍스트 바꿔두기
+                $("#btn-post-box").text("포스팅 박스 닫기");
+            }
+        }
+
+        function postArticle() {
+            let title = $('#post-url').val()
+            let content = $('#post-comment').val()
+
+            $.ajax({
+                type: "POST",
+                url: `/post`,
+                data: {
+                    title: title,
+                    contents: content,
+                },
+                success: function (response) {
+                    alert(response["msg"])
+                }
+            });
+            window.location.reload()
+        }
+
+        function showArticles() {
+            $.ajax({
+                type: "GET",
+                url: `/post`,
+
+                success: function (result) {
+                    let articles = result['all_articles']
+                    let number = articles.length;
+
+
+                    for (let i = 0; i < articles.length; i++) {
+                        let title = articles[i]['title']
+                        let idx = articles[i]['idx']
+                        let time = articles[i]['reg_date']
+                        let view = articles[i]['view']
+
+                        let temp_html = `<tr >
+                                           <th scope="col" >${number}</th>
+                                           <th scope="col" ><a href="javascript:void(0);" onclick="show(${idx});"> ${title}</a></div>
+                                           <th scope="col" >${time}</div>
+                                           <th scope="col" >${view}</div>
+                                           <th scope="col"><button onclick="deleteArticle(${idx})" type="button" class="btn btn-danger" >삭제</button></th>
+                                           <th scope="col"><button onclick="updateArticle(${idx})" type="button" class="btn btn-primary" >수정</button></th>
+                                         </tr>`
+                        $('#list-post').append(temp_html)
+                        number -= 1
+                    }
+                }
+            });
+        }
+
+        function updateArticle(idx) {
+            $('#posting-button').toggleClass("is-hidden");
+            $('#updating-button').toggleClass("is-hidden");
+
+            $.ajax({
+                type: "GET",
+                url: `/articles`,
+                data: {
+                    idx: idx
+                },
+                success: function (response) {
+                    console.log(response['articles'])
+                    let title = response['articles']['title'];
+                    let contents = response['articles']['contents'];
+                    let idx = response['articles']['idx'];
+                    $('#post-url').val(title)
+                    $('#post-comment').val(contents)
+                    $('#update-id').val(idx)
+                }
+            });
+
+            openClose()
+        }
+
+        function updatepost() {
+            let title = $('#post-url').val()
+            let contents = $('#post-comment').val()
+            let idx = $('#update-id').val()
+
+            $.ajax({
+                type: "PUT",
+                url: `/articles`,
+                data: {
+                    title: title,
+                    contents: contents,
+                    idx: idx
+                },
+                success: function (response) {
+                    alert(response["msg"])
+                }
+            });
+            window.location.reload()
+        }
+
+
+        function makeListPost(post, index) {
+
+        }
+
+        function deleteArticle(idx) {
+            $.ajax({
+                type: "DELETE",
+                url: `/post`,
+                data: {
+                    idx: idx
+                },
+                success: function (response) {
+                    alert(response["msg"])
+                    window.location.reload()
+                }
+            });
+        }
+
+        function show(idx) {
+            $.ajax({
+                type: "GET",
+                url: `/view`,
+                data: {
+                    idx: idx
+                },
+                success: function (response) {
+                    let title = response['articles']['title'];
+                    let contents = response['articles']['contents'];
+
+                    $("#modal-title").html(title);
+                    $("#modal-contents").html(contents);
+                }
+            });
+
+            //modal을 띄워준다.
+            $("#myModal").modal('show');
+        }
+
+        function sort(str) {
+            $('#sort-up').toggleClass("is-hidden");
+            $('#sort-down').toggleClass("is-hidden");
+
+            $.ajax({
+                type: "GET",
+                url: `/sort`,
+                data: {
+                    type: str
+                },
+                success: function (response) {
+                    $('#list-post').empty()
+                    let articles = response['articles']
+                    let number = 1;
+
+                    for (let i = 0; i < articles.length; i++) {
+                        let title = articles[i]['title']
+                        let idx = articles[i]['idx']
+                        let time = articles[i]['reg_date']
+                        let view = articles[i]['view']
+
+                        let temp_html = `<tr >
+                                           <th scope="col" >${number}</th>
+                                           <th scope="col" ><a href="javascript:void(0);" onclick="show(${idx});"> ${title}</a></div>
+                                           <th scope="col" >${time}</div>
+                                           <th scope="col" >${view}</div>
+                                           <th scope="col"><button onclick="deleteArticle(${idx})" type="button" class="btn btn-danger" >삭제</button></th>
+                                           <th scope="col"><button onclick="updateArticle(${idx})" type="button" class="btn btn-primary" >수정</button></th>
+                                         </tr>`
+                        $('#list-post').append(temp_html)
+                        number += 1
+                    }
+                }
+            });
+        }
+
+        function search() {
+            let name = $('#search-input').val()
+
+            $.ajax({
+                type: "GET",
+                url: `/search`,
+                data: {
+                    name: name
+                },
+                success: function (response) {
+                    $('#list-post').empty()
+                    let articles = response['articles']
+                    let number = 1;
+
+                    for (let i = 0; i < articles.length; i++) {
+                        let title = articles[i]['title']
+                        let idx = articles[i]['idx']
+                        let time = articles[i]['reg_date']
+                        let view = articles[i]['view']
+
+                        let temp_html = `<tr >
+                                           <th scope="col" >${number}</th>
+                                           <th scope="col" ><a href="javascript:void(0);" onclick="show(${idx});"> ${title}</a></div>
+                                           <th scope="col" >${time}</div>
+                                           <th scope="col" >${view}</div>
+                                           <th scope="col"><button onclick="deleteArticle(${idx})" type="button" class="btn btn-danger" >삭제</button></th>
+                                           <th scope="col"><button onclick="updateArticle(${idx})" type="button" class="btn btn-primary" >수정</button></th>
+                                         </tr>`
+                        $('#list-post').append(temp_html)
+                        number += 1
+                    }
+                }
+            });
+        }
+    </script>
+
+</head>
+
+<body>
+<div class="wrap">
+    <div class="jumbotron">
+        <h1 class="display-4">나홀로 메모장!</h1>
+        <hr class="my-4">
+        <p class="lead">
+            <button onclick="openClose()" id="btn-post-box" type="button" class="btn btn-primary">포스팅 박스 열기
+            </button>
+        </p>
+    </div>
+    <div id="post-box" class="form-post" style="display:none">
+        <div>
+            <div class="form-group">
+                <label for="post-url">제목</label>
+                <input id="post-url" class="form-control" placeholder="">
+            </div>
+            <div class="form-group">
+                <label for="post-comment">간단한 내용</label>
+                <textarea id="post-comment" class="form-control" rows="2"></textarea>
+            </div>
+            <button id="posting-button" type="button" class="btn btn-primary " onclick="postArticle()">기사저장</button>
+            <button id="updating-button" type="button" class="btn btn-primary is-hidden" onclick="updatepost()">기사수정
+            </button>
+            <input type="hidden" id="update-id" value="">
+        </div>
+    </div>
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">제목</th>
+            <th scope="col">날짜</th>
+            <th id="sort-up" scope="col">조회 <i onclick="sort('up')" class="fas fa-arrow-circle-up"></i></th>
+            <th id="sort-down" class="is-hidden" scope="col">조회 <i onclick="sort('down')"
+                                                                   class="fas fa-arrow-circle-down"></i></th>
+            <th scope="col">삭제</th>
+            <th scope="col">수정</th>
+        </tr>
+        </thead>
+        <tbody id="list-post">
+
+        </tbody>
+    </table>
+
+    <div class="input-group mb-3" >
+        <input id="search-input" type="text" class="form-control" placeholder="제목" aria-label="Recipient's username"
+               aria-describedby="button-addon2">
+        <button class="btn btn-outline-secondary" type="button" id="button-search" onclick="search()">검색</button>
+    </div>
+</div>
+
+<div id="myModal" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 id="modal-title" class="modal-title"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="modal-contents"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+</html>
