@@ -50,6 +50,33 @@
         }
     </style>
     <script>
+        $(document).ready(function (){
+           getArticles();
+        });
+
+        function getArticles(){
+            $.ajax({
+                type: "GET",
+                url: "/article",
+                contentType: 'application/json; charset=utf-8',
+
+                success: function (response) {
+                    console.log(response)
+
+                    for(let i=0;i<response.length;i++){
+                        let title = response[i].title;
+                        let content = response[i].content;
+
+                        let temphtml = `<tr><th scope="col">${i+1}</th>
+            <th scope="col" ><a href="#">${title}</a></th>
+            <th scope="col">댓글수</th>
+            <th scope="col">등록일자</th></tr>`
+                        $('#list-post').append(temphtml)
+                    }
+                }
+            })
+        }
+
         function openClose(){
             if ($("#post-box").css("display") == "block") {
                 $("#post-box").hide();
@@ -63,20 +90,20 @@
         }
 
         function postingArticle(){
-            let title = $('#title').va();
+            let title = $('#title').val();
             let content = $('#contents').val();
 
             $.ajax({
                 type: "POST",
                 url: "/article",
-                data: {title: title, content: content},
+                contentType: 'application/json; charset=utf-8',
+                data: JSON.stringify({
+                    title: title,
+                    content: content
+                }),
                 success: function (response) {
-                    if (response["result"] == "success") {
                         alert("포스팅 업데이트 성공!");
                         window.location.reload();
-                    } else {
-                        alert("서버 오류!");
-                    }
                 }
             })
         }
