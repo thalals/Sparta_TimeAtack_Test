@@ -7,7 +7,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ArticleRequestDto {
+    private Long idx;
     private String title;
     private String content;
-    private String test;
+    private String comment;
+    private String tags;
 }

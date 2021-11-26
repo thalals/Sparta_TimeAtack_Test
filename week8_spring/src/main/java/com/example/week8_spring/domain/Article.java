@@ -6,12 +6,13 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @NoArgsConstructor
 @Getter
 @Setter
-public class Article {
+public class Article extends Timestamped {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -22,6 +23,12 @@ public class Article {
 
     @Column
     private String content;
+
+    @OneToMany(mappedBy = "article")
+    private List<Tag> tags;
+
+    @OneToMany(mappedBy = "article")
+    private List<Comment> comments;
 
     public Article(ArticleRequestDto articleRequestDto){
         this.title = articleRequestDto.getTitle();

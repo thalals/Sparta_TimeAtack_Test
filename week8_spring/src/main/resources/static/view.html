@@ -44,7 +44,54 @@
         }
     </style>
     <script>
+        let idx = '';
+        $(document).ready(function (){
+            idx=getParam('idx');
+            getArticle(idx);
+        })
+        function getParam(name) {
+            var results = new RegExp('[\?&amp;]' + name + '=([^&amp;#]*)').exec(window.location.href);
+            return results[1] || 0;
+        }
 
+        function getArticle(){
+            $.ajax({
+                type: "GET",
+                url: `/article/${idx}`,
+                success: function (response) {
+                    console.log(response)
+                    $("#title").html(response['title']);
+                    $("#content").html(response['content']);
+                    $("#comment-list").empty();
+                    for (let i = 0; i < response['comments'].length; i++) {
+                        makeListComment(response['comments'][i])
+                    }
+                }
+            })
+        }
+
+        function makeListComment(comment) {
+            let tempHtml = `<li class="list-group-item">${comment['comment']}</li>`;
+            $("#comment-list").append(tempHtml);
+        }
+
+        function setArticleComment() {
+            let comment = {
+                "idx":idx,
+                "comment":$("#comment").val()
+            }
+            console.log(comment)
+            $.ajax({
+                type: "POST",
+                url: `/article/comment`,
+                contentType: 'application/json; charset=utf-8',
+                data: JSON.stringify(comment),
+                success: function (response) {
+                    alert("댓글이 작성되었습니다!!");
+                    getArticle();
+                }
+            })
+        }
     </script>
 
 </head>
